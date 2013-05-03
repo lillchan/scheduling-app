@@ -7,7 +7,12 @@ var express = require('express'),
     routes = require('./routes'),
     calendar = require('./routes/calendar'),
     http = require('http'),
-    path = require('path');
+    path = require('path'),
+    pg = require('pg');
+
+var conString = "tcp://postgres:1234@localhost/postgres"
+var client = new pg.Client(conString);
+//client.connect();
 
 var app = express();
 
