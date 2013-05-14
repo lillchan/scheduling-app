@@ -1,39 +1,3 @@
-extends layout
-
-block content
-    p #{title}
-    div(class="span12")
-        h3 Hi there. What can I schedule for you today?
-        div(class="lead") Heloise can help you find blocks of free time on your Google Calendar.
-        form(class="form-horizontal", id="searchApptsForm")
-            div(class="control-group")
-                label(class="control-label", for="apptName") Appt Name: 
-                div(class="controls")
-                    input(id="apptName", name="apptName", type="text")
-            div(class="control-group")
-                label(class="control-label", for="apptStartDate") Someday between: 
-                div(class="controls")
-                    input(id="apptStartDate", name="apptStartDate", type="date")
-                    span  and  
-                    input(id="apptEndDate", name="apptEndDate", type="date")
-            div(class="control-group")
-                label(class="control-label", for="weekendsOnly") Weekends Only: 
-                div(class="controls")
-                    input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
-            div(class="control-group")
-                label(class="control-label", for="apptStartTime") Sometime between: 
-                div(class="controls")
-                    input(id="apptStartTime", name="apptStartTime", type="time")
-                    span  and 
-                    input(id="apptEndTime", name="apptEndTime", type="time")  
-            div(class="control-group")
-                label(class="control-label", for="apptDuration") Appt Duration:
-                div(class="controls")
-                    input(id="apptDuration", name="apptDuration", type="number")
-                    span  (hours)          
-            div(class="control-group")
-                div(class="controls")
-                    button(id="submitApptSearch", type="submit", class="btn") Find Time
 
     script
         $("#submitApptSearch").click(function(){

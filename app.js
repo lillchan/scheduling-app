@@ -42,7 +42,10 @@ if ('production' == app.get('env')) {
 }
 
 app.all('/', calendar.google_authenticate);
-app.all('/calendarlist', calendar.calendar_list);
+app.all('/list_calendars', calendar.list_calendars)
+app.all('/get_calendar/:id', calendar.get_calendar);
+//app.all('/googledirections', function(req, res){res.render('google-directions.jade');});
+//app.all('/calendarlist', calendar.calendar_list);
 
 http.createServer(app).listen(app.get('port'), function(){
  console.log('Express server listening on port ' + app.get('port'));

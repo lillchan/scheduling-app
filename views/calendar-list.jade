@@ -1,0 +1,58 @@
+doctype 5        
+html
+    head
+        script(src="/javascripts/jquery-1.9.1.js")
+        script(src="/javascripts/bootstrap.min.js")
+        script(src="/javascripts/jquery-ui-1.10.1.custom.min.js")
+        link(rel='stylesheet', href='/stylesheets/bootstrap.css')
+    body
+        div(class="container")
+            div(class="row-fluid")
+                div(class="span12")
+                    h1 When Can I...?
+                div(class="span12")
+                    div(class="lead") Find blocks of free time on your Google Calendar!
+                    div(id="calendarlist")
+                        p First, choose a calendar you want to search:
+                    p Then, enter some info about the appointment you want to schedule:
+                    form(class="form-horizontal", id="searchApptsForm")
+                        div(class="control-group")
+                            label(class="control-label", for="apptName") Appt Name: 
+                            div(class="controls")
+                                input(id="apptName", name="apptName", type="text")
+                        div(class="control-group")
+                            label(class="control-label", for="apptStartDate") Someday between: 
+                            div(class="controls")
+                                input(id="apptStartDate", name="apptStartDate", type="date")
+                                span  and  
+                                input(id="apptEndDate", name="apptEndDate", type="date")
+                        div(class="control-group")
+                            label(class="control-label", for="weekendsOnly") Weekends Only: 
+                            div(class="controls")
+                                input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
+                        div(class="control-group")
+                            label(class="control-label", for="apptStartTime") Sometime between: 
+                            div(class="controls")
+                                input(id="apptStartTime", name="apptStartTime", type="time")
+                                span  and 
+                                input(id="apptEndTime", name="apptEndTime", type="time")  
+                        div(class="control-group")
+                            label(class="control-label", for="apptDuration") Appt Duration:
+                            div(class="controls")
+                                input(id="apptDuration", name="apptDuration", type="number")
+                                span  (hours)
+                    div(class="control-group")
+                        div(class="controls")
+                            button(id="submitApptSearch", type="submit", class="btn") Find Time
+    script(type='text/javascript')
+        var calendar_list = !{JSON.stringify(calendar_list)};
+        console.log(calendar_list);
+        var calendarlist = $('#calendarlist');
+        var dropdown = $('<select id="calendar_id_dropdown"><option>Choose One</option></select>');
+        for(var i = 0; i < calendar_list.items.length; i++) {
+            var listitem = $('<option>');
+            listitem.html(calendar_list.items[i].summary);
+            listitem.attr('value', calendar_list.items[i].id);
+            dropdown.append(listitem);
+        }
+        calendarlist.append(dropdown);
