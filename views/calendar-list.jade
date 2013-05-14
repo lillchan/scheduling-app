@@ -62,17 +62,23 @@ html
                 type: "GET",
                 url: "https://www.googleapis.com/calendar/v3/calendars/" + $('#calendar_id_dropdown').val() + "/events?key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4"
                 }).done(function (data) {
-                    console.log(data.items);
+                    var today = new Date(); //get today's date
+                    var dates_to_search = [];
+                    //var paragraph = $('<p>');
                     for (var i = 0; i < data.items.length; i++) {
-                        var items = data.items[i];
-                        var start = JSON.stringify(items.start);
-                        var end = JSON.stringify(items.end);
-                        var name = JSON.stringify(items.summary);
-                        $('#calendar_events').append(name);
-                        $('#calendar_events').append(start);
-                        $('#calendar_events').append(end);
+                        var item = data.items[i];
+                        if (item.start) { //check if there is a start time, otherwise it's an all day event
+                            var start = new Date(item.start.dateTime); //convert start date to datetime
+                            console.log(start);
+                        };
+                        //var end = item.end.dateTime;
+                        //var name = item.summary;
+                        if (start >= today) { //if start time is after today, then add to dates_to_search array
+                            dates_to_search.push(item);
+                        }
                     }
                     console.log("yay, success!");
+                    console.log(dates_to_search);
                 }).error(function() {
                     console.log("Oh noes, something went wrong!");
                 });
