@@ -44,6 +44,7 @@ html
                     div(class="control-group")
                         div(class="controls")
                             button(id="submitApptSearch", type="submit", class="btn") Find Time
+                div(class="span12", id="calendar_events")
     script(type='text/javascript')
         var calendar_list = !{JSON.stringify(calendar_list)};
         console.log(calendar_list);
@@ -56,3 +57,23 @@ html
             dropdown.append(listitem);
         }
         calendarlist.append(dropdown);
+        $("#submitApptSearch").click(function(){
+            $.ajax({
+                type: "GET",
+                url: "https://www.googleapis.com/calendar/v3/calendars/" + $('#calendar_id_dropdown').val() + "/events?key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4"
+                }).done(function (data) {
+                    console.log(data.items);
+                    for (var i = 0; i < data.items.length; i++) {
+                        var items = data.items[i];
+                        var start = JSON.stringify(items.start);
+                        var end = JSON.stringify(items.end);
+                        var name = JSON.stringify(items.summary);
+                        $('#calendar_events').append(name);
+                        $('#calendar_events').append(start);
+                        $('#calendar_events').append(end);
+                    }
+                    console.log("yay, success!");
+                }).error(function() {
+                    console.log("Oh noes, something went wrong!");
+                });
+        });

@@ -86,7 +86,6 @@ exports.google_authenticate = function(req, res){
 };
 
 exports.list_calendars = function(req, res) {
-  console.log(accessToken);
   google_calendar.listCalendarList(accessToken,
     function(err, data) {
       if(err) {
@@ -99,19 +98,15 @@ exports.list_calendars = function(req, res) {
 };
 
 exports.get_calendar = function(req, res) {
-  var calendar_id = req.params.id;
+  var calendar_id = req.params.calendarId;
 
   oauth2Client.credentials = {
     access_token: accessToken
   };
 
   googleapis.discover('calendar', 'v3').execute(function(err, client) {
-    console.log(client);
     client.authClient = oauth2Client;
-    client.calendar.calendars.get({calendarId: calendar_id});
-    client.execute(function(err, results) {
-        console.log(results);
-      });
+    client.calendar.events.list({calendarId: calendar_id}).execute();
     });
 };
 
