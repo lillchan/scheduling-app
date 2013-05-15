@@ -14,72 +14,100 @@ html
                     div(class="lead") Find blocks of free time on your Google Calendar!
                     div(id="calendarlist")
                         p First, choose a calendar you want to search:
-                    p Then, enter some info about the appointment you want to schedule:
-                    form(class="form-horizontal", id="searchApptsForm")
+                    div
+                        p Then, enter some info about the appointment you want to schedule:
+                        form(class="form-horizontal", id="searchApptsForm")
+                            div(class="control-group")
+                                label(class="control-label", for="apptName") Appt Name: 
+                                div(class="controls")
+                                    input(id="apptName", name="apptName", type="text")
+                            //- div(class="control-group")
+                            //-     label(class="control-label", for="apptStartDate") Someday between: 
+                            //-     div(class="controls")
+                            //-         input(id="apptStartDate", name="apptStartDate", type="date")
+                            //-         span  and  
+                            //-         input(id="apptEndDate", name="apptEndDate", type="date")
+                            //- div(class="control-group")
+                            //-     label(class="control-label", for="weekendsOnly") Weekends Only: 
+                            //-     div(class="controls")
+                            //-         input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
+                            //- div(class="control-group")
+                            //-     label(class="control-label", for="apptStartTime") Sometime between: 
+                            //-     div(class="controls")
+                            //-         input(id="apptStartTime", name="apptStartTime", type="time")
+                            //-         span  and 
+                            //-         input(id="apptEndTime", name="apptEndTime", type="time")  
+                            div(class="control-group")
+                                label(class="control-label", for="apptDuration") Appt Duration:
+                                div(class="controls")
+                                    input(id="apptDuration", name="apptDuration", type="number")
+                                    span  hours
                         div(class="control-group")
-                            label(class="control-label", for="apptName") Appt Name: 
                             div(class="controls")
-                                input(id="apptName", name="apptName", type="text")
-                        div(class="control-group")
-                            label(class="control-label", for="apptStartDate") Someday between: 
-                            div(class="controls")
-                                input(id="apptStartDate", name="apptStartDate", type="date")
-                                span  and  
-                                input(id="apptEndDate", name="apptEndDate", type="date")
-                        div(class="control-group")
-                            label(class="control-label", for="weekendsOnly") Weekends Only: 
-                            div(class="controls")
-                                input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
-                        div(class="control-group")
-                            label(class="control-label", for="apptStartTime") Sometime between: 
-                            div(class="controls")
-                                input(id="apptStartTime", name="apptStartTime", type="time")
-                                span  and 
-                                input(id="apptEndTime", name="apptEndTime", type="time")  
-                        div(class="control-group")
-                            label(class="control-label", for="apptDuration") Appt Duration:
-                            div(class="controls")
-                                input(id="apptDuration", name="apptDuration", type="number")
-                                span  (hours)
-                    div(class="control-group")
-                        div(class="controls")
-                            button(id="submitApptSearch", type="submit", class="btn") Find Time
+                                button(id="submitApptSearch", type="submit", class="btn") Find Time
                 div(class="span12", id="calendar_events")
-    script(type='text/javascript')
-        var calendar_list = !{JSON.stringify(calendar_list)};
-        console.log(calendar_list);
-        var calendarlist = $('#calendarlist');
-        var dropdown = $('<select id="calendar_id_dropdown"><option>Choose One</option></select>');
-        for(var i = 0; i < calendar_list.items.length; i++) {
-            var listitem = $('<option>');
-            listitem.html(calendar_list.items[i].summary);
-            listitem.attr('value', calendar_list.items[i].id);
-            dropdown.append(listitem);
-        }
-        calendarlist.append(dropdown);
-        $("#submitApptSearch").click(function(){
-            $.ajax({
-                type: "GET",
-                url: "https://www.googleapis.com/calendar/v3/calendars/" + $('#calendar_id_dropdown').val() + "/events?key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4"
-                }).done(function (data) {
-                    var today = new Date(); //get today's date
-                    var dates_to_search = [];
-                    //var paragraph = $('<p>');
-                    for (var i = 0; i < data.items.length; i++) {
-                        var item = data.items[i];
-                        if (item.start) { //check if there is a start time, otherwise it's an all day event
-                            var start = new Date(item.start.dateTime); //convert start date to datetime
-                            console.log(start);
-                        };
-                        //var end = item.end.dateTime;
-                        //var name = item.summary;
-                        if (start >= today) { //if start time is after today, then add to dates_to_search array
-                            dates_to_search.push(item);
-                        }
+        script(type='text/javascript')
+            var createCalendarDropdown = function() {
+                var calendar_list = !{JSON.stringify(calendar_list)};
+                var calendarlist = $('#calendarlist');
+                var dropdown = $('<select id="calendar_id_dropdown"><option>Choose One</option></select>');
+                for(var i = 0; i < calendar_list.items.length; i++) {
+                    var listitem = $('<option>');
+                    listitem.html(calendar_list.items[i].summary);
+                    listitem.attr('value', calendar_list.items[i].id);
+                    dropdown.append(listitem);
+                }
+                calendarlist.append(dropdown);
+            }
+            createCalendarDropdown();
+            var apptsInTwoWeeks = function(data) {
+                var today = new Date(); //get today's date
+                var twoWeeksFromToday = (new Date()).setDate(today.getDate() + 14);
+                var apptsInTwoWeeks = []; //array of all appts in next 2 weeks
+                var apptsInTwoWeeksByHour = []; //array of all appts in next 2 weeks broken into hours
+                for (var i = 0; i < data.items.length; i++) {
+                    var item = data.items[i];
+                    var start = new Date(item.start.dateTime || item.start.date || 'no start time'); //convert start date to datetime
+                    var end = new Date(item.end.dateTime || item.end.date || 'no end time');
+                    console.log(start);
+                    console.log(end);
+                    //how to deal with all day events? item.start.date (instead of dateTime)
+                    if (start >= today && start <= twoWeeksFromToday) {
+                        //if the start time is after today and before two weeks from today
+                        //add to apptsInTwoWeeks array
+                        apptsInTwoWeeks.push(item);
+                        console.log("apptsInTwoWeeks:");
+                        console.log(apptsInTwoWeeks);
                     }
-                    console.log("yay, success!");
-                    console.log(dates_to_search);
-                }).error(function() {
-                    console.log("Oh noes, something went wrong!");
+                }
+                for (var i = 0; i < apptsInTwoWeeks.length; i++) {
+                    //loop through appts in next two weeks
+                    //grab a reference to the start datetime of the appt
+                    var start = new Date(apptsInTwoWeeks[i].start.dateTime);
+                    //grab a reference to the end datetime of the appt
+                    var end = new Date(apptsInTwoWeeks[i].end.dateTime);
+                    while (start <= end) {
+                        //while start is less than or equal to end
+                        //push the start time onto the hourly appts array
+                        apptsInTwoWeeksByHour.push(start);
+                        //increment start by 1 hour (1000ms/s * 60s/min * 60min/hr)
+                        //loop will stop when start is 1 hour over end
+                        start.setTime(start.getTime() + (60 * 60 * 1000));
+                    }
+                }
+                return apptsInTwoWeeksByHour;
+            };
+            $("#submitApptSearch").click(function(){
+                var calendarID = $('#calendar_id_dropdown').val();
+                $.ajax({
+                    type: "GET",
+                    url: "https://www.googleapis.com/calendar/v3/calendars/" + calendarID + "/events?key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4",
+                    success: function(data) {
+                        console.log("success!");
+                        console.log(apptsInTwoWeeks(data));
+                    },
+                    error: function() {
+                        console.log("Oh noes, something went wrong!");
+                    }
                 });
-        });
+            });
