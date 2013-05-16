@@ -67,19 +67,21 @@ html
                 var apptsInTwoWeeksByHour = []; //array of all appts in next 2 weeks broken into hours
                 for (var i = 0; i < data.items.length; i++) {
                     var item = data.items[i];
-                    var start = new Date(item.start.dateTime || item.start.date || 'no start time'); //convert start date to datetime
-                    var end = new Date(item.end.dateTime || item.end.date || 'no end time');
-                    console.log(start);
-                    console.log(end);
-                    //how to deal with all day events? item.start.date (instead of dateTime)
+                    if (item.start) { //need to check if start exists (doesn't exist for cancelled events)
+                        var start = new Date(item.start.dateTime || item.start.date || 'no start time'); //convert start date to datetime
+                    }
+                    if (item.end) {
+                        var end = new Date(item.end.dateTime || item.end.date || 'no end time');
+                    }
+                    //all day events, have a date, instead of a dateTime
                     if (start >= today && start <= twoWeeksFromToday) {
                         //if the start time is after today and before two weeks from today
                         //add to apptsInTwoWeeks array
                         apptsInTwoWeeks.push(item);
-                        console.log("apptsInTwoWeeks:");
-                        console.log(apptsInTwoWeeks);
                     }
                 }
+                console.log("apptsInTwoWeeks:");
+                console.log(apptsInTwoWeeks);
                 for (var i = 0; i < apptsInTwoWeeks.length; i++) {
                     //loop through appts in next two weeks
                     //grab a reference to the start datetime of the appt
