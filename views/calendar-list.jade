@@ -21,22 +21,22 @@ html
                                 label(class="control-label", for="apptName") Appt Name: 
                                 div(class="controls")
                                     input(id="apptName", name="apptName", type="text")
-                            //- div(class="control-group")
-                            //-     label(class="control-label", for="apptStartDate") Someday between: 
-                            //-     div(class="controls")
-                            //-         input(id="apptStartDate", name="apptStartDate", type="date")
-                            //-         span  and  
-                            //-         input(id="apptEndDate", name="apptEndDate", type="date")
+                            div(class="control-group")
+                                label(class="control-label", for="apptStartDate") Someday between: 
+                                div(class="controls")
+                                    input(id="apptStartDate", name="apptStartDate", type="date")
+                                    span  and  
+                                    input(id="apptEndDate", name="apptEndDate", type="date")
                             //- div(class="control-group")
                             //-     label(class="control-label", for="weekendsOnly") Weekends Only: 
                             //-     div(class="controls")
                             //-         input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
-                            //- div(class="control-group")
-                            //-     label(class="control-label", for="apptStartTime") Sometime between: 
-                            //-     div(class="controls")
-                            //-         input(id="apptStartTime", name="apptStartTime", type="time")
-                            //-         span  and 
-                            //-         input(id="apptEndTime", name="apptEndTime", type="time")  
+                            div(class="control-group")
+                                label(class="control-label", for="apptStartTime") Sometime between: 
+                                div(class="controls")
+                                    input(id="apptStartTime", name="apptStartTime", type="time")
+                                    span  and 
+                                    input(id="apptEndTime", name="apptEndTime", type="time")  
                             div(class="control-group")
                                 label(class="control-label", for="apptDuration") Appt Duration:
                                 div(class="controls")
@@ -100,13 +100,20 @@ html
                 return apptsInTwoWeeksByHour;
             };
             $("#submitApptSearch").click(function(){
+                //google datetime format: 2011-06-03T10:25:00.000-07:00
                 var calendarID = $('#calendar_id_dropdown').val();
+                var startTime = $('#apptStartTime').val(); //in format: 17:00
+                var endTime = $('#apptEndTime').val();
+                var startDate = $('#apptStartDate').val(); //in format: 2013-05-15
+                var endDate = $('#apptEndDate').val();
+                var start = startDate + "T" + startTime + ":00.000-7:00";
+                var end = endDate + "T" + endTime + ":00.000-7:00";
                 $.ajax({
                     type: "GET",
-                    url: "https://www.googleapis.com/calendar/v3/calendars/" + calendarID + "/events?key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4",
+                    url: "https://www.googleapis.com/calendar/v3/calendars/" + calendarID + "/events?timeMax=" + end + "&timeMin=" + start + "&key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4",
                     success: function(data) {
                         console.log("success!");
-                        console.log(apptsInTwoWeeks(data));
+                        console.log(data);
                     },
                     error: function() {
                         console.log("Oh noes, something went wrong!");
