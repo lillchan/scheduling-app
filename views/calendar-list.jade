@@ -1,122 +1,25 @@
-doctype 5        
-html
-    head
-        script(src="/javascripts/jquery-1.9.1.js")
-        script(src="/javascripts/bootstrap.min.js")
-        script(src="/javascripts/jquery-ui-1.10.1.custom.min.js")
-        link(rel='stylesheet', href='/stylesheets/bootstrap.css')
-    body
-        div(class="container")
-            div(class="row-fluid")
-                div(class="span12")
-                    h1 When Can I...?
-                div(class="span12")
-                    div(class="lead") Find blocks of free time on your Google Calendar!
-                    div(id="calendarlist")
-                        p First, choose a calendar you want to search:
-                    div
-                        p Then, enter some info about the appointment you want to schedule:
-                        form(class="form-horizontal", id="searchApptsForm")
-                            div(class="control-group")
-                                label(class="control-label", for="apptName") Appt Name: 
-                                div(class="controls")
-                                    input(id="apptName", name="apptName", type="text")
-                            div(class="control-group")
-                                label(class="control-label", for="apptStartDate") Someday between: 
-                                div(class="controls")
-                                    input(id="apptStartDate", name="apptStartDate", type="date")
-                                    span  and  
-                                    input(id="apptEndDate", name="apptEndDate", type="date")
-                            //- div(class="control-group")
-                            //-     label(class="control-label", for="weekendsOnly") Weekends Only: 
-                            //-     div(class="controls")
-                            //-         input(id="weekendsOnly", name="weekendsOnly", type="checkbox")
-                            div(class="control-group")
-                                label(class="control-label", for="apptStartTime") Sometime between: 
-                                div(class="controls")
-                                    input(id="apptStartTime", name="apptStartTime", type="time")
-                                    span  and 
-                                    input(id="apptEndTime", name="apptEndTime", type="time")  
-                            div(class="control-group")
-                                label(class="control-label", for="apptDuration") Appt Duration:
-                                div(class="controls")
-                                    input(id="apptDuration", name="apptDuration", type="number")
-                                    span  hours
-                        div(class="control-group")
-                            div(class="controls")
-                                button(id="submitApptSearch", type="submit", class="btn") Find Time
-                div(class="span12", id="calendar_events")
-        script(type='text/javascript')
-            var createCalendarDropdown = function() {
-                var calendar_list = !{JSON.stringify(calendar_list)};
-                var calendarlist = $('#calendarlist');
-                var dropdown = $('<select id="calendar_id_dropdown"><option>Choose One</option></select>');
-                for(var i = 0; i < calendar_list.items.length; i++) {
-                    var listitem = $('<option>');
-                    listitem.html(calendar_list.items[i].summary);
-                    listitem.attr('value', calendar_list.items[i].id);
-                    dropdown.append(listitem);
-                }
-                calendarlist.append(dropdown);
-            }
-            createCalendarDropdown();
-            var apptsInTwoWeeks = function(data) {
-                var today = new Date(); //get today's date
-                var twoWeeksFromToday = (new Date()).setDate(today.getDate() + 14);
-                var apptsInTwoWeeks = []; //array of all appts in next 2 weeks
-                var apptsInTwoWeeksByHour = []; //array of all appts in next 2 weeks broken into hours
-                for (var i = 0; i < data.items.length; i++) {
-                    var item = data.items[i];
-                    if (item.start) { //need to check if start exists (doesn't exist for cancelled events)
-                        var start = new Date(item.start.dateTime || item.start.date || 'no start time'); //convert start date to datetime
-                    }
-                    if (item.end) {
-                        var end = new Date(item.end.dateTime || item.end.date || 'no end time');
-                    }
-                    //all day events, have a date, instead of a dateTime
-                    if (start >= today && start <= twoWeeksFromToday) {
-                        //if the start time is after today and before two weeks from today
-                        //add to apptsInTwoWeeks array
-                        apptsInTwoWeeks.push(item);
-                    }
-                }
-                console.log("apptsInTwoWeeks:");
-                console.log(apptsInTwoWeeks);
-                for (var i = 0; i < apptsInTwoWeeks.length; i++) {
-                    //loop through appts in next two weeks
-                    //grab a reference to the start datetime of the appt
-                    var start = new Date(apptsInTwoWeeks[i].start.dateTime);
-                    //grab a reference to the end datetime of the appt
-                    var end = new Date(apptsInTwoWeeks[i].end.dateTime);
-                    while (start <= end) {
-                        //while start is less than or equal to end
-                        //push the start time onto the hourly appts array
-                        apptsInTwoWeeksByHour.push(start);
-                        //increment start by 1 hour (1000ms/s * 60s/min * 60min/hr)
-                        //loop will stop when start is 1 hour over end
-                        start.setTime(start.getTime() + (60 * 60 * 1000));
-                    }
-                }
-                return apptsInTwoWeeksByHour;
-            };
-            $("#submitApptSearch").click(function(){
-                //google datetime format: 2011-06-03T10:25:00.000-07:00
-                var calendarID = $('#calendar_id_dropdown').val();
-                var startTime = $('#apptStartTime').val(); //in format: 17:00
-                var endTime = $('#apptEndTime').val();
-                var startDate = $('#apptStartDate').val(); //in format: 2013-05-15
-                var endDate = $('#apptEndDate').val();
-                var start = startDate + "T" + startTime + ":00.000-7:00";
-                var end = endDate + "T" + endTime + ":00.000-7:00";
-                $.ajax({
-                    type: "GET",
-                    url: "https://www.googleapis.com/calendar/v3/calendars/" + calendarID + "/events?timeMax=" + end + "&timeMin=" + start + "&key=AIzaSyD2rYjoab1qlDJNifetNZun-qaLFvNvcJ4",
-                    success: function(data) {
-                        console.log("success!");
-                        console.log(data);
-                    },
-                    error: function() {
-                        console.log("Oh noes, something went wrong!");
-                    }
-                });
-            });
+extends layout
+
+block content
+    form(action="/search-events", method="POST", id="searchApptsForm")
+        fieldset
+            label
+                strong First, please select the calendar you would like to search:
+            select(name="calendarList", value="choose a calendar", class="select-block span5")
+                for calendar in calendarList
+                    option(value="#{calendar.id} #{calendar.timeZone}")= calendar.summary
+            label
+                strong Then, give me some criteria to search by:
+            label Someday Between:
+            input(id="apptStartDate", name="apptStartDate", type="date")
+            span  AND 
+            input(id="apptEndDate", name="apptEndDate", type="date")
+            label Appointment Start Time:
+            input(id="apptEndTime", name="apptStartTime", type="time")
+            label Appointment End Time:
+            input(id="apptEndTime", name="apptEndTime", type="time")
+            br
+            button(id="submitApptSearch", type="submit", class="btn btn-large btn-primary") Find Time
+        p(align="right")
+            form(align="right", action="/logout")
+                input(class="btn", type="submit", value="Log me out.")

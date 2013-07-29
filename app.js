@@ -6,17 +6,29 @@ var express = require('express'),
     routes = require('./routes'),
     calendar = require('./routes/calendar'),
     http = require('http'),
-    path = require('path'),
-    pg = require('pg');
+    path = require('path');
 
-var conString = "tcp://postgres:1234@localhost/postgres"
-var client = new pg.Client(conString);
-//client.connect();
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var passport = require('passport');
+var gcal = require('google-calendar');
+var config = require('./config').Config;
+
+passport.use(new GoogleStrategy({
+      clientID: config.consumer_key,
+      clientSecret: config.consumer_secret,
+      callbackURL: "http://localhost:5000/auth/callback",
+      scope: ['openid', 'email', 'https://www.googleapis.com/auth/calendar']
+  },
+  function(accessToken, refreshToken, profile, done) {
+    profile.accessToken = accessToken;
+    return done(null, profile);
+  }
+));
 
 var app = express();
 
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 5000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.cookieParser());
@@ -27,25 +39,16 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.methodOverride());
-app.use(app.router);
+app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(app.router);
 
-// development only
-if ('development' == app.get('env')) {
- app.use(express.errorHandler());
- app.set('db connection', "tcp://postgres:5432@localhost/postgres");
-}
-
-// for production
-if ('production' == app.get('env')) {
-	app.set('db connection', process.env.DATABASE_URL);
-}
-
-app.all('/', calendar.google_authenticate);
-app.all('/list_calendars', calendar.list_calendars);
-//app.all('/get_calendar/:id', calendar.get_calendar);
-//app.all('/googledirections', function(req, res){res.render('google-directions.jade');});
-//app.all('/calendarlist', calendar.calendar_list);
+// routes!
+app.all('/', function(req, res) {res.render('index');});
+app.all('/oauth', calendar.oauth);
+app.all('/authorized', calendar.authorized);
+app.all('/calendar-list', calendar.calendarlist);
+app.all('/search-events', calendar.searchEvents);
 
 http.createServer(app).listen(app.get('port'), function(){
  console.log('Express server listening on port ' + app.get('port'));

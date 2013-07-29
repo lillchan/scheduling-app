@@ -1,67 +1,61 @@
 var googleapis = require('googleapis'),
-    OAuth2Client = googleapis.OAuth2Client,
-    GoogleCalendar = require('google-calendar'),
-    Users = require('../models/users.js');
+	OAuth2Client = googleapis.OAuth2Client,
+	moment = require('moment'),
+	http = require('http'),
+	config = require('../config').Config,
+	google = require('node-google-api')(config.api_key);
 
-var oauth2Client = new OAuth2Client(
-  '524876334284.apps.googleusercontent.com',
-  '_yi1QfD2NJrKAX5u4cceFKj5',
-  'http://localhost:3000');
+var oauth2Client =
+	new OAuth2Client(config.consumer_key, config.consumer_secret, 'http://localhost:5000/authorized');
 
-var accessToken;
-
-var google_calendar = new GoogleCalendar.GoogleCalendar(
-   '524876334284.apps.googleusercontent.com',
-   '_yi1QfD2NJrKAX5u4cceFKj5',
-   'http://localhost:3000');
-
-exports.google_authenticate = function(req, res){
- if (!req.query.code) {
-   //Redirect the user to Google's authentication form
-   google_calendar.getGoogleAuthorizeTokenURL(
-    function(err, redirecUrl) {
-       if(err) return res.send(500,err);
-       return res.redirect(redirecUrl);
-    }
-  );
-
- } else {
-   //Get access_token from the code
-   google_calendar.getGoogleAccessToken(req.query,
-    function(err, access_token, refresh_token) {
-
-       if(err) return res.send(500,err);
-
-       //req.session.access_token = access_token;
-       //req.session.refresh_token = refresh_token;
-       accessToken = access_token; //is this alright that i'm using a global var?
-       return res.redirect('/list_calendars');
-   }
-  );
- }
+//check if there's an access token stored in the session
+//if there is an access token, then redirect to route that requests calendar list
+//if not, then request an authorization code to get an access token
+exports.oauth = function(req, res) {
+	if (req.session.accessToken) {
+		res.redirect('/calendar-list');
+	}
+	var url = oauth2Client.generateAuthUrl({
+		scope: 'https://www.googleapis.com/auth/calendar'
+	});
+	res.redirect(url);
 };
 
-exports.list_calendars = function(req, res){
-  google_calendar.listCalendarList(accessToken,
-    function(err, data) {
-      if(err) {
-        console.log("something went wrong in the calendar_list function!");
-        return res.send(500, err);
-      }
-      return res.render('calendar-list', {calendar_list: data});
-    }
-  );
+//with the authorization code, request an access token
+exports.authorized = function(req, res) {
+	var authCode = req.query.code;
+	oauth2Client.getToken(authCode, function(err, tokens) {
+		var accessToken = tokens.access_token;
+		req.session.accessToken = accessToken;
+		res.redirect('/calendar-list');
+	});
 };
 
-// exports.get_calendar = function(req, res) {
-//   var calendar_id = req.params.calendarId;
+//send get request for list of user's calendars
+exports.calendarlist = function(req, res) {
+	var accessToken = req.session.accessToken;
+	google.build(function(api) {
+		api.calendar.calendarList.list(
+		{
+			access_token: accessToken
+		},
+		function(calendars) {
+			res.render('calendar-list', {calendarList: calendars.items});
+		});
+	});
+};
 
-//   oauth2Client.credentials = {
-//     access_token: accessToken
-//   };
-
-//   googleapis.discover('calendar', 'v3').execute(function(err, client) {
-//     client.authClient = oauth2Client;
-//     client.calendar.events.list({calendarId: calendar_id}).execute();
-//     });
-// };
+//query google calendar API for free blocks of time
+exports.searchEvents = function(req, res) {
+	var accessToken = req.session.accessToken;
+	//grab data from search form
+	var startDate = req.body.apptStartDate;
+	var startTime = req.body.apptStartTime;
+	var endDate = req.body.apptEndDate;
+	var endTime = req.body.apptEndTime;
+	var calIdTimezone = req.body.calendarList.split(" ");
+	var calId = calIdTimezone[0];
+	var calTimezone = calIdTimezone[1];
+	//TODO: check datetimes in user specified range to see if there are free blocks
+	res.send('searching for free blocks of time!');
+};

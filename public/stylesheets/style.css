@@ -1,8 +1,9 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding-top: 20px;
+    padding-bottom: 40px;
 }
 
-a {
-  color: #00B7FF;
+.container-narrow {
+    margin: 0 auto;
+    max-width: 700px;
 }

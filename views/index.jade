@@ -1,21 +1,7 @@
+extends layout
 
-    script
-        $("#submitApptSearch").click(function(){
-            var search_calendar = $.ajax({
-                type: "GET",
-                url: "http://localhost:3000/calendar/search_calendar",
-                data: {
-                    apptName: $('#apptName').val(),
-                    apptStartDate: $('#apptStartDate').val(),
-                    apptEndDate: $('#apptEndDate').val(),
-                    weekendsOnly: $('#weekendsOnly').val(),
-                    apptStartTime: $('#apptStartTime').val(),
-                    apptEndTime: $('#apptEndTime').val(),
-                    apptDuration: $('#apptDuration').val()}
-                }).done(function (data) {
-                    console.log(data);
-                    console.log("yay, success!")
-                }).error(function() {
-                    console.log("Oh noes, something went wrong!");
-                });
-        });
+block content
+    div(class="jumbotron")
+        p Welcome! To get started, please sign in with your Google Calendar.
+        form(action="/oauth")
+            input(class="btn bt-large btn-primary", type="submit", value="Sign In")
